@@ -6,7 +6,7 @@ metadata:
     app: cassandra
 spec:
   serviceName: cassandra
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: cassandra
@@ -18,8 +18,8 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: cassandra
-        image: romilb/dataserving:latest
-        imagePullPolicy: IfNotPresent
+        image: gcr.io/google-samples/cassandra:v13
+        imagePullPolicy: Always
         ports:
         - containerPort: 7000
           name: intra-node
@@ -32,10 +32,10 @@ spec:
         resources:
           limits:
             cpu: "500m"
-            memory: 0.7Gi
+            memory: 1Gi
           requests:
             cpu: "500m"
-            memory: 0.7Gi
+            memory: 1Gi
         securityContext:
           capabilities:
             add:
@@ -43,7 +43,7 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: 
+              command:
               - /bin/sh
               - -c
               - nodetool drain
@@ -54,6 +54,12 @@ spec:
             value: 100M
           - name: CASSANDRA_SEEDS
             value: "cassandra-0.cassandra.default.svc.cluster.local"
+          - name: CASSANDRA_CLUSTER_NAME
+            value: "K8Demo"
+          - name: CASSANDRA_DC
+            value: "DC1-K8Demo"
+          - name: CASSANDRA_RACK
+            value: "Rack1-K8Demo"
           - name: POD_IP
             valueFrom:
               fieldRef:
@@ -61,8 +67,33 @@ spec:
         readinessProbe:
           exec:
             command:
-              - /bin/bash
-              - -c
-              - /ready-probe.sh
+            - /bin/bash
+            - -c
+            - /ready-probe.sh
           initialDelaySeconds: 15
           timeoutSeconds: 5
+        # These volume mounts are persistent. They are like inline claims,
+        # but not exactly because the names need to match exactly one of
+        # the stateful pod volumes.
+        volumeMounts:
+        - name: cassandra-data
+          mountPath: /cassandra_data
+  # These are converted to volume claims by the controller
+  # and mounted at the paths mentioned above.
+  # do not use these in production until ssd GCEPersistentDisk or other ssd pd
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: fast
+      resources:
+        requests:
+          storage: 1Gi
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: fast
+provisioner: k8s.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
