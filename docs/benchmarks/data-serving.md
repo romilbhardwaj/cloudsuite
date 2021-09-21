@@ -8,45 +8,45 @@ The data serving benchmark relies on the Yahoo! Cloud Serving Benchmark (YCSB). 
 
 The YCSB client has a data generator. After starting Cassandra, YCSB can start loading the data. First, you need to create a keyspace named *usertable* and a column family for YCSB. This is a must for YCSB to load data and run.
 
-### Preparing a network between the server(s) and the client(s)
 
-To facilitate the communication between the client and the server(s), we build a docker network:
-
-```bash
-$ docker network create serving_network
-```
-We will attach the launched containers to this newly created docker network.
 
 ### Server Container
+
+**Note**: The following commands will run the Cassandra within host's network. To make sure that slaves and master can communicate with each other, the master container's hostname, which should be host's hostname, must be able to be resolved to the same IP address by the master container and all slave containers. 
+
 Start the server container that will run cassandra server and installs a default keyspace usertable:
 
 ```bash
-$ docker run --name cassandra-server --net serving_network cloudsuite3/data-serving:server cassandra
+$ docker run --name cassandra-server --privileged --net host cloudsuite/data-serving:server
 ```
 ### Multiple Server Containers
 
-For a cluster setup with multiple servers, we need to instantiate a seed server:
+Please note the server containers cannot be hosted on the same node when the host network configuration is used because they will all try to use the same port.
+
+For a cluster setup with multiple servers, we need to instantiate a seed server :
 
 ```bash
-$ docker run --name cassandra-server-seed --net serving_network cloudsuite3/data-serving:server
+$ docker run --name cassandra-server-seed --privileged --net host cloudsuite/data-serving:server
 ```
 
 Then we prepare the server as previously.
 
-The other server containers are instantiated as follows:
+The other server containers are instantiated as follows on **different VMs**:
 
 ```bash
-$ docker run --name cassandra-server(id) --net serving_network -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite3/data-serving:server
+$ docker run --name cassandra-server(id) --privileged --net host -e CASSANDRA_SEEDS=cassandra-server-seed-IPADDRESS cloudsuite/data-serving:server
 ```
 
 You can find more details at the websites: http://wiki.apache.org/cassandra/GettingStarted and https://hub.docker.com/_/cassandra/.
+
+Make sure all non-seed servers are established (adding them concurrently may lead to a [problem](https://docs.datastax.com/en/cassandra/2.1/cassandra/operations/ops_add_node_to_cluster_t.html)).
 
 ### Client Container
 After successfully creating the aforementioned schema, you are ready to benchmark with YCSB.
 Start the client container specifying server name(s), or IP address(es), separated with commas, as the last command argument:
 
 ```bash
-$ docker run --name cassandra-client --net serving_network cloudsuite3/data-serving:client "cassandra-server-seed,cassandra-server1"
+$ docker run --name cassandra-client --net host cloudsuite/data-serving:client "cassandra-server-seed-IPADDRESS,cassandra-server1-IPADDRESS"
 ```
 
 More detailed instructions on generating the dataset can be found in Step 5 at [this](http://github.com/brianfrankcooper/YCSB/wiki/Running-a-Workload) link. Although Step 5 in the link describes the data loading procedure, other steps (e.g., 1, 2, 3, 4) are very useful to understand the YCSB settings.
@@ -70,10 +70,10 @@ Tuning the server performance
 Running the benchmark
 ---------------------
 The benchmark is run automatically with the client container. One can modify the record count in the database and/or the number of operations performed by the benchmark specifying the corresponding variables when running the client container:
-```bash
-$ docker run -e RECORDCOUNT=<#> -e OPERATIONCOUNT=<#> --name cassandra-client --net serving_network cloudsuite3/data-serving:client "cassandra-server-seed,cassandra-server1"
+```
+$ docker run -e RECORDCOUNT=<#> -e OPERATIONCOUNT=<#> --name cassandra-client --net host cloudsuite/data-serving:client "cassandra-server-seed,cassandra-server1"
 ```
 
-[dhrepo]: https://hub.docker.com/r/cloudsuite3/data-serving/ "DockerHub Page"
-[dhpulls]: https://img.shields.io/docker/pulls/cloudsuite3/data-serving.svg "Go to DockerHub Page"
-[dhstars]: https://img.shields.io/docker/stars/cloudsuite3/data-serving.svg "Go to DockerHub Page"
+[dhrepo]: https://hub.docker.com/r/cloudsuite/data-serving/ "DockerHub Page"
+[dhpulls]: https://img.shields.io/docker/pulls/cloudsuite/data-serving.svg "Go to DockerHub Page"
+[dhstars]: https://img.shields.io/docker/stars/cloudsuite/data-serving.svg "Go to DockerHub Page"

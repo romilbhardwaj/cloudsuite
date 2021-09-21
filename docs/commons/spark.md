@@ -3,12 +3,11 @@
 [![Pulls on DockerHub][dhpulls]][dhrepo]
 [![Stars on DockerHub][dhstars]][dhrepo]
 
-This repository contains a Docker image of Apache Spark. Currently we support
-Spark versions 2.3.1 for CloudSuite 3.0. 
+This repository contains a Docker image of Apache Spark 2.4.5.
 
 To obtain the image:
 
-    $ docker pull cloudsuite3/spark
+    $ docker pull cloudsuite/spark:2.4.5
 
 ## Running Spark
 
@@ -16,21 +15,20 @@ To obtain the image:
 
 To try out Spark running in a single container, start the container with:
 
-    $ docker run -it --rm cloudsuite3/spark bash
+    $ docker run -it --rm cloudsuite/spark:2.4.5 bash
 
-Spark installation is located under /opt/spark-2.3.1. Try running an example that
+Spark installation is located under /opt/spark-2.4.5. Try running an example that
 calculates Pi with 100 tasks:
 
-    $ /opt/spark-2.3.1/bin/spark-submit --class org.apache.spark.examples.SparkPi \
-        /opt/spark-2.3.1/lib/spark-examples-2.3.1-hadoop2.6.0.jar 100
+    $ /opt/spark-2.4.5/bin/run-example SparkPi 100
 
 You can also run Spark programs using spark-submit without entering the
 interactive shell by supplying "submit" as the command to run the image.
 Arguments after "submit" are passed to spark-submit. For example, to run the
 same example as above type:
 
-    $ docker run --rm cloudsuite3/spark submit --class org.apache.spark.examples.SparkPi \
-        /opt/spark-2.3.1/lib/spark-examples-2.3.1-hadoop2.6.0.jar 100
+    $ docker run --rm cloudsuite/spark:2.4.5 submit --class org.apache.spark.examples.SparkPi \
+        /opt/spark-2.4.5/examples/jars/spark-examples_2.11-2.4.5.jar 100
 
 Notice that the path to the jar is a path inside the container. You can pass
 jars in the host filesystem as arguments if you map the directory where they
@@ -38,41 +36,31 @@ reside as a Docker volume.
 
 Finally, you can also start an interactive Spark shell with:
 
-    $ docker run -it --rm cloudsuite3/spark shell
+    $ docker run -it --rm cloudsuite/spark:2.4.5 shell
 
 Again, this is just a shortcut for starting a container and running
-/opt/spark-2.3.1/bin/spark-shell. Try running a simple parallelized count:
+/opt/spark-2.4.5./bin/spark-shell. Try running a simple parallelized count:
 
     $ sc.parallelize(1 to 1000).count()
 
 ### Multi Container
 
-Usually, we want to run Spark with multiple workers to parallelize some job. In
-Docker it is typical to run a single process in a single container. Here we
-show how to start a number of workers, a single Spark master that acts as a
-coordinator (cluster manager), and submit a job.
+Usually, we want to run Spark with multiple workers to parallelize some job. In Docker it is typical to run a single process in a single container. Here we show how to start a number of workers, a single Spark master that acts as a coordinator (cluster manager), and submit a job.
 
-First, create a new Docker network. Let's call it spark-net. If we are running
-on a single machine, a bridge network will do.
+**Note**: The following commands will run the Spark cluster within host's network. To make sure that slaves and master can communicate with each other, the master container's hostname, which should be host's hostname, must be able to be resolved to the same IP address by the master container and all slave containers. 
 
-    $ docker network create --driver bridge spark-net
-
-We need to create this new network because Docker does not support automatic
-service discovery on the default bridge network.
 
 Start a Spark master:
 
-    $ docker run -dP --net spark-net --hostname spark-master --name spark-master cloudsuite3/spark master
+    $ docker run -dP --net host --name spark-master cloudsuite/spark:2.4.5 master
 
 Start a number of Spark workers:
 
-    $ docker run -dP --net spark-net --name spark-worker-01 cloudsuite3/spark worker spark://spark-master:7077
-    $ docker run -dP --net spark-net --name spark-worker-02 cloudsuite3/spark worker spark://spark-master:7077
+    $ docker run -dP --net host --name spark-worker-01 cloudsuite/spark:2.4.5 worker spark://SPARK-MASTER-IPADDRESS:7077
+    $ docker run -dP --net host --name spark-worker-02 cloudsuite/spark:2.4.5 worker spark://SPARK-MASTER-IPADDRESS:7077
     $ ...
 
-We can monitor our jobs using Spark's web UI. Point your browser to MASTER_IP:8080, where:
-
-    $ MASTER_IP=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' spark-master)
+We can monitor our jobs using Spark's web UI. Point your browser to SPARK-MASTER-IPADDRESS:8080, where SPARK-MASTER-IPADDRESS is the IP of the VM/host on which spark master is running. The spark master prints out (check docker logs) or check web UI for `spark://HOST:PORT URL`, use this while connecting workers. For more details refer to [spark-documentation](https://spark.apache.org/docs/2.4.5/spark-standalone.html).
 
 Finally, to submit a job, we can use any of the methods described in the Single
 Container section, with the addition of the network argument to Docker and
@@ -80,28 +68,22 @@ spark-master argument to Spark.
 
 Start Spark container with bash and run spark-submit inside it to estimate Pi:
 
-    $ docker run -it --rm --net spark-net cloudsuite3/spark bash
-    $ /opt/spark-2.3.1/bin/spark-submit --class org.apache.spark.examples.SparkPi \
-        --master spark://spark-master:7077 \
-        /opt/spark-2.3.1/lib/spark-examples-2.3.1-hadoop2.6.0.jar 100
+    $ docker run -it --rm --net host cloudsuite/spark:2.4.5 bash
+    $ /opt/spark-2.4.5/bin/spark-submit --class org.apache.spark.examples.SparkPi \
+        --master spark://SPARK-MASTER-IPADDRESS:7077 \
+        /opt/spark-2.4.5/examples/jars/spark-examples_2.11-2.4.5.jar 100
 
 Start Spark container with "submit" command to estimate Pi:
 
-    $ docker run --rm --net spark-net cloudsuite3/spark submit --class org.apache.spark.examples.SparkPi \
-        --master spark://spark-master:7077 \
-        /opt/spark-2.3.1/lib/spark-examples-2.3.1-hadoop2.6.0.jar 100
+    $ docker run --rm --net host cloudsuite/spark:2.4.5 submit --class org.apache.spark.examples.SparkPi \
+        --master spark://SPARK-MASTER-IPADDRESS:7077 \
+        /opt/spark-2.4.5/examples/jars/spark-examples_2.11-2.4.5.jar 100
 
 Start Spark container with "shell" command and run a parallelized count:
 
-    $ docker run -it --rm --net spark-net cloudsuite3/spark shell --master spark://spark-master:7077
+    $ docker run -it --rm --net host cloudsuite/spark:2.4.5 shell --master spark://SPARK-MASTER-IPADDRESS:7077
     $ sc.parallelize(1 to 1000).count()
 
-For a multi-node setup, where multiple Docker containers are running on
-multiple physical nodes, all commands remain the same if using Docker Swarm as
-the cluster manager. The only difference is that the new network needs to be an
-overlay network instead of a bridge network.
-
-[dhrepo]: https://hub.docker.com/r/cloudsuite3/spark/ "DockerHub Page"
-[dhpulls]: https://img.shields.io/docker/pulls/cloudsuite3/spark.svg "Go to DockerHub Page"
-[dhstars]: https://img.shields.io/docker/stars/cloudsuite3/spark.svg "Go to DockerHub Page"
-
+[dhrepo]: https://hub.docker.com/r/cloudsuite/spark/ "DockerHub Page"
+[dhpulls]: https://img.shields.io/docker/pulls/cloudsuite/spark.svg "Go to DockerHub Page"
+[dhstars]: https://img.shields.io/docker/stars/cloudsuite/spark.svg "Go to DockerHub Page"
