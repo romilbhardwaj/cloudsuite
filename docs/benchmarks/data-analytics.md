@@ -22,19 +22,24 @@ The benchmark is designed to run on a Hadoop cluster, where the single master ru
 
 **Note**: The following commands will run the Hadoop cluster within host's network. To make sure that slaves and master can communicate with each other, the master container's hostname, which should be host's hostname, must be able to be resolved to the same IP address by the master container and all slave containers. 
 
+Create the network:
+```bash
+$ docker network create hadoop-net
+```
+
 Start the master with:
 
 ```bash
-$ docker run -d --net host --name master cloudsuite/data-analytics:4.0 master
+$ docker run -d --name master --net hadoop-net --hostname master cloudsuite/data-analytics:4.0 master
 ```
 
-Start any number of Hadoop slaves with:
+Start any number of Hadoop slaves with (they can be run on the same node):
 ```
-$ # on VM1
-$ docker run -d --net host --name slave01 cloudsuite/hadoop:2.10.1 slave $IP_ADDRESS_MASTER
+Slave 1:
+$ docker run -d --net hadoop-net --name slave01 --hostname slave01 cloudsuite/hadoop:2.10.1 slave master
 
-$ # on VM2
-$ docker run -d --net host --name slave02 cloudsuite/hadoop:2.10.1 slave $IP_ADDRESS_MASTER
+# Slave 2:
+$ docker run -d --net hadoop-net --name slave02 --hostname slave02 cloudsuite/hadoop:2.10.1 slave master
 
 ...
 ```

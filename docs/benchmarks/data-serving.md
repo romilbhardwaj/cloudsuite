@@ -23,10 +23,15 @@ $ docker run --name cassandra-server --privileged --net host cloudsuite/data-ser
 
 Please note the server containers cannot be hosted on the same node when the host network configuration is used because they will all try to use the same port.
 
+Create the network:
+```bash
+$ docker network create cass-net
+```
+
 For a cluster setup with multiple servers, we need to instantiate a seed server :
 
 ```bash
-$ docker run --name cassandra-server-seed --privileged --net host cloudsuite/data-serving:server
+$ docker run --name cassandra-server-seed --privileged --net cass-net cloudsuite/data-serving:server
 ```
 
 Then we prepare the server as previously.
@@ -34,7 +39,10 @@ Then we prepare the server as previously.
 The other server containers are instantiated as follows on **different VMs**:
 
 ```bash
-$ docker run --name cassandra-server(id) --privileged --net host -e CASSANDRA_SEEDS=cassandra-server-seed-IPADDRESS cloudsuite/data-serving:server
+$ docker run --name cassandra-server(id) --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
+
+eg
+$ docker run --name cassandra-server1 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 ```
 
 You can find more details at the websites: http://wiki.apache.org/cassandra/GettingStarted and https://hub.docker.com/_/cassandra/.
@@ -46,7 +54,7 @@ After successfully creating the aforementioned schema, you are ready to benchmar
 Start the client container specifying server name(s), or IP address(es), separated with commas, as the last command argument:
 
 ```bash
-$ docker run --name cassandra-client --net host cloudsuite/data-serving:client "cassandra-server-seed-IPADDRESS,cassandra-server1-IPADDRESS"
+$ docker run --name cassandra-client --net cass-net cloudsuite/data-serving:client "cassandra-server-seed,cassandra-server1"
 ```
 
 More detailed instructions on generating the dataset can be found in Step 5 at [this](http://github.com/brianfrankcooper/YCSB/wiki/Running-a-Workload) link. Although Step 5 in the link describes the data loading procedure, other steps (e.g., 1, 2, 3, 4) are very useful to understand the YCSB settings.
