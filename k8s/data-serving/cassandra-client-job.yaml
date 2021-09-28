@@ -25,6 +25,8 @@ spec:
           name: jmx
         - containerPort: 9042
           name: cql
+        - containerPort: 9160
+          name: thrift
         resources:
           limits:
             cpu: "500m"
@@ -36,6 +38,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
+          privileged: true
         lifecycle:
           preStop:
             exec:
@@ -43,7 +46,7 @@ spec:
               - /bin/sh
               - -c
               - nodetool drain
-        args: ["cassandra.default.svc.cluster.local"] # This is the k8s service providing load balancing
+        args: ["cassandra-server.default.svc.cluster.local"] # This is the k8s service providing load balancing
         env:
           - name: MAX_HEAP_SIZE
             value: 512M

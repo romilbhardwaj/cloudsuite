@@ -42,8 +42,10 @@ The other server containers are instantiated as follows:
 ```bash
 $ docker run --name cassandra-server(id) --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 
-eg
+Example:
 $ docker run --name cassandra-server1 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
+docker run --name cassandra-server2 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
+docker run --name cassandra-server3 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 ```
 
 You can find more details at the websites: http://wiki.apache.org/cassandra/GettingStarted and https://hub.docker.com/_/cassandra/.

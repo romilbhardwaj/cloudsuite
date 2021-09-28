@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-kubectl create -f cassandra-service.yaml
+kubectl create -f cassandra-seed.yaml
 sleep 5
-kubectl create -f cassandra-statefulset.yaml
+kubectl create -f cassandra-server.yaml

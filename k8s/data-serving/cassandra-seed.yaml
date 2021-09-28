@@ -1,3 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cassandra-seed
+  name: cassandra-seed
+spec:
+# clusterIP: None
+  ports:
+    - port: 7000
+      name: intra-node
+    - port: 7001
+      name: tls-intra-node
+    - port: 7199
+      name: jmx
+    - port: 9042
+      name: cql
+    - port: 9160
+      name: thrift
+  selector:
+    app: cassandra-seed
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,7 +38,7 @@ spec:
     spec:
       containers:
       - name: cassandra-seed
-        image: romilb/dataserving:latest
+        image: cloudsuite/data-serving:server
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
 #        args: [ "-c", "while true; do echo hello; sleep 20;done" ]
@@ -29,10 +51,13 @@ spec:
           name: jmx
         - containerPort: 9042
           name: cql
+        - containerPort: 9160
+          name: thrift
         securityContext:
           capabilities:
             add:
               - IPC_LOCK
+          privileged: true
         env:
           - name: MAX_HEAP_SIZE
             value: 512M
