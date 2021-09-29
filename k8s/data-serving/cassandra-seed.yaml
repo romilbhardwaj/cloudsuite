@@ -3,9 +3,9 @@ kind: Service
 metadata:
   labels:
     app: cassandra-seed
-  name: cassandra-seed
+  name: cassandra-seed-svc
 spec:
-# clusterIP: None
+  clusterIP: None
   ports:
     - port: 7000
       name: intra-node
@@ -31,14 +31,16 @@ spec:
   selector:
     matchLabels:
       app: cassandra-seed
+      can_serve: "true"
   template:
     metadata:
       labels:
         app: cassandra-seed
+        can_serve: "true"
     spec:
       containers:
       - name: cassandra-seed
-        image: cloudsuite/data-serving:server
+        image: public.ecr.aws/cilantro/data-serving:server
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
 #        args: [ "-c", "while true; do echo hello; sleep 20;done" ]
@@ -63,8 +65,6 @@ spec:
             value: 512M
           - name: HEAP_NEWSIZE
             value: 100M
-#          - name: CASSANDRA_SEEDS
-#            value: "cassandra-0.cassandra.default.svc.cluster.local"
           - name: POD_IP
             valueFrom:
               fieldRef:

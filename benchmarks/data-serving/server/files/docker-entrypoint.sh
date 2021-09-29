@@ -4,6 +4,8 @@ set -e
 echo Server IP
 hostname --ip-address
 
+echo Envvar CASSANDRA_LISTEN_ADDRESS is ${CASSANDRA_LISTEN_ADDRESS}
+
 if [ -z "$CASSANDRA_SEEDS" ]; then
     NEED_INIT=1
     echo Running Cassandra seed server.
@@ -11,6 +13,8 @@ else
     NEED_INIT=0
     echo Running regular Cassandra server.
 fi
+
+HOSTNAME=$(hostname -f)
 
 # first arg is `-f` or `--some-option`
 if [ "${1:0:1}" = '-' ]; then
@@ -20,16 +24,24 @@ fi
 if [ "$1" = 'cassandra' ] || [ "$1" = 'bash' ]; then
 	: ${CASSANDRA_RPC_ADDRESS='0.0.0.0'}
 
-	: ${CASSANDRA_LISTEN_ADDRESS='auto'}
+  if [[ -z "${CASSANDRA_LISTEN_ADDRESS}" ]]; then
+    : ${CASSANDRA_LISTEN_ADDRESS='auto'}
+  fi
+
 	if [ "$CASSANDRA_LISTEN_ADDRESS" = 'auto' ]; then
-		CASSANDRA_LISTEN_ADDRESS="$(hostname --ip-address)"
+		CASSANDRA_LISTEN_ADDRESS=${POD_IP:-$HOSTNAME}
+	else
+	  CASSANDRA_LISTEN_ADDRESS=$CASSANDRA_LISTEN_ADDRESS
 	fi
 
 	: ${CASSANDRA_BROADCAST_ADDRESS="$CASSANDRA_LISTEN_ADDRESS"}
 
 	if [ "$CASSANDRA_BROADCAST_ADDRESS" = 'auto' ]; then
-		CASSANDRA_BROADCAST_ADDRESS="$(hostname --ip-address)"
+		CASSANDRA_BROADCAST_ADDRESS=${POD_IP:-$HOSTNAME}
+	else
+	  CASSANDRA_BROADCAST_ADDRESS=$CASSANDRA_LISTEN_ADDRESS
 	fi
+
 	: ${CASSANDRA_BROADCAST_RPC_ADDRESS:=$CASSANDRA_BROADCAST_ADDRESS}
 
 	if [ -n "${CASSANDRA_NAME:+1}" ]; then
@@ -64,5 +76,8 @@ if [ "$1" = 'cassandra' ] || [ "$1" = 'bash' ]; then
 		fi
 	done
 fi
+
+echo Using CASSANDRA_LISTEN_ADDRESS ${CASSANDRA_LISTEN_ADDRESS}
+echo Using CASSANDRA_BROADCAST_ADDRESS ${CASSANDRA_BROADCAST_ADDRESS}
 
 exec "$@"

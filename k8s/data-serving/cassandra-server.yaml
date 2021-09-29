@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: cassandra-server
-  name: cassandra-server
+  name: cassandra-server-svc
 spec:
 # clusterIP: None
   ports:
@@ -18,7 +18,7 @@ spec:
     - port: 9160
       name: thrift
   selector:
-    app: cassandra-server
+    can_serve: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,19 +26,22 @@ metadata:
   name: cassandra-server
   labels:
     app: cassandra-server
+    can_serve: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: cassandra-server
+      can_serve: "true"
   template:
     metadata:
       labels:
         app: cassandra-server
+        can_serve: "true"
     spec:
       containers:
       - name: cassandra-server
-        image: cloudsuite/data-serving:server
+        image: public.ecr.aws/cilantro/data-serving:server
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
 #        args: [ "-c", "while true; do echo hello; sleep 20;done" ]
@@ -64,7 +67,7 @@ spec:
           - name: HEAP_NEWSIZE
             value: 100M
           - name: CASSANDRA_SEEDS
-            value: "10.244.0.16"
+            value: "cassandra-seed-svc" # "cassandra-seed.default.svc.cluster.local"
           - name: POD_IP
             valueFrom:
               fieldRef:

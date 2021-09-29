@@ -33,7 +33,13 @@ For a cluster setup with multiple servers, we need to instantiate a seed server 
 
 ```bash
 $ docker run --name cassandra-server-seed --privileged --net cass-net cloudsuite/data-serving:server
+
+OR
+
+docker run --rm --name cassandra-server-seed --privileged --net cass-net public.ecr.aws/cilantro/data-serving:server
 ```
+
+You can optionally specify the listen address with `-e CASSANDRA_LISTEN_ADDRESS=<hostname or IP>`
 
 Then we prepare the server as previously.
 
@@ -43,7 +49,8 @@ The other server containers are instantiated as follows:
 $ docker run --name cassandra-server(id) --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 
 Example:
-$ docker run --name cassandra-server1 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
+$ 
+docker run --rm --name cassandra-server1 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed public.ecr.aws/cilantro/data-serving:server
 docker run --name cassandra-server2 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 docker run --name cassandra-server3 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 ```

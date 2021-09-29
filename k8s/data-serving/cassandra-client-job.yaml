@@ -14,7 +14,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: ycsbclient
-        image: cloudsuite/data-serving:client
+        image: public.ecr.aws/cilantro/data-serving:client
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 7000
@@ -46,7 +46,7 @@ spec:
               - /bin/sh
               - -c
               - nodetool drain
-        args: ["cassandra-server.default.svc.cluster.local"] # This is the k8s service providing load balancing
+        args: ["cassandra-server-svc.default.svc.cluster.local"] # This is the k8s service providing load balancing
         env:
           - name: MAX_HEAP_SIZE
             value: 512M
