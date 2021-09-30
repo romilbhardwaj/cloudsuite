@@ -2,6 +2,7 @@ FROM cloudsuite/cassandra:3.11.6
 
 ENV CASSANDRA_VERSION 3.11.6
 ENV YCSB_VERSION 0.14.0
+ENV PYTHONUNBUFFERED 1
 
 RUN set -ex \
     && apt-get update \
@@ -17,6 +18,8 @@ RUN wget -q --show-progress --progress=bar:force https://github.com/brianfrankco
 
 COPY setup_tables.txt /setup_tables.txt
 COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY ycsb_loop_driver.py /ycsb_loop_driver.py
+
 RUN chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo server\'s IP is $1
+echo output dir is $2
 
 if [ ! -z "$RECORDCOUNT" ]; then
     RECORDCOUNT="-p recordcount=$RECORDCOUNT"
@@ -37,4 +38,4 @@ echo 'Keyspace usertable was created'
 echo '======================================================'
 
 /ycsb/bin/ycsb load cassandra-cql -p hosts=$1 -P /ycsb/workloads/workloada $RECORDCOUNT
-/ycsb/bin/ycsb run cassandra-cql -p hosts=$1 -P /ycsb/workloads/workloada $OPERATIONCOUNT $RECORDCOUNT
+python /ycsb_loop_driver.py --cmd "/ycsb/bin/ycsb run cassandra-cql -p hosts=$1 -P /ycsb/workloads/workloada $OPERATIONCOUNT $RECORDCOUNT" --out-dir $2

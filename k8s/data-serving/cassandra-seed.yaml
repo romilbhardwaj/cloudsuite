@@ -26,6 +26,7 @@ metadata:
   name: cassandra-seed
   labels:
     app: cassandra-seed
+    can_serve: "true"
 spec:
   replicas: 1
   selector:
@@ -41,6 +42,7 @@ spec:
       containers:
       - name: cassandra-seed
         image: public.ecr.aws/cilantro/data-serving:server
+        imagePullPolicy: Always
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
 #        args: [ "-c", "while true; do echo hello; sleep 20;done" ]

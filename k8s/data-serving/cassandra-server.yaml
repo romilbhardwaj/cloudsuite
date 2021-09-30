@@ -27,21 +27,25 @@ metadata:
   labels:
     app: cassandra-server
     can_serve: "true"
+    is_workload: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: cassandra-server
       can_serve: "true"
+      is_workload: "true"
   template:
     metadata:
       labels:
         app: cassandra-server
         can_serve: "true"
+        is_workload: "true"
     spec:
       containers:
       - name: cassandra-server
         image: public.ecr.aws/cilantro/data-serving:server
+        imagePullPolicy: Always
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
 #        args: [ "-c", "while true; do echo hello; sleep 20;done" ]
