@@ -31,6 +31,10 @@ Start the master with:
 
 ```bash
 $ docker run -d --name master --net hadoop-net --hostname master cloudsuite/data-analytics:4.0 master
+
+OR for custom image:
+
+$ docker run -d --name master --net hadoop-net --hostname master public.ecr.aws/cilantro/data-analytics:4.0 master
 ```
 
 Start any number of Hadoop slaves with (they can be run on the same node):

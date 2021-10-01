@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: analytics-slave
+  name: analytics-slave-svc
+spec:
+  clusterIP: None
+#  ports:
+#    - port: 7000
+#      name: intra-node
+  selector:
+    can_serve: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-slave
+  labels:
+    app: analytics-slave
+    can_serve: "true"
+    is_workload: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics-slave
+      can_serve: "true"
+      is_workload: "true"
+  template:
+    metadata:
+      labels:
+        app: analytics-slave
+        can_serve: "true"
+        is_workload: "true"
+    spec:
+      containers:
+      - name: analytics-slave
+        image: public.ecr.aws/cilantro/hadoop:2.10.1
+        imagePullPolicy: Always
+#        # Uncomment these lines for debugging
+#        command: [ "/bin/sh" ]
+        args: [ "slave", "analytics-master-svc", "$(POD_IP)"]
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+          privileged: true
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP

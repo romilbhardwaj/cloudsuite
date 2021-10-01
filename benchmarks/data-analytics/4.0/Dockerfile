@@ -17,7 +17,12 @@ RUN set -x \
 # Download dataset
 # Use latest_link=$(curl -s https://dumps.wikimedia.org/enwiki/latest/ | grep  "enwiki-latest-pages-articles1.xml-" | grep -Eoi '<a [^>]+>' | cut -d '"' -f 2 | grep -E "*.bz2$") \
 #     && curl https://dumps.wikimedia.org/enwiki/latest/${latest_link} | bunzip2 > /root/wiki - to get the latest link and download.
-RUN curl https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles1.xml-p1p41242.bz2 | bunzip2 > /root/wiki
+RUN curl https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles1.xml-p1p41242.bz2 | bunzip2 > /root/wiki_og
+
+### FILE SPLITTING HERE
+RUN split -n1000 --suffix-length=4 /root/wiki_og /root/wiki
+RUN cat /root/wikiaaaa > /root/wiki
+###
 
 COPY files/*-site.xml ${HADOOP_CONF_DIR}/
 COPY files/categories /root/
