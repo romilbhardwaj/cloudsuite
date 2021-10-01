@@ -26,7 +26,7 @@ spec:
           - containerPort: 10000
         command: [ "python", "/cilantro/cilantro_clients/drivers/ycsb_to_grpc_driver.py" ]
         args: [ "--log-folder-path", "/cilantrologs", "--grpc-port", "$(CILANTRO_SERVICE_SERVICE_PORT)", "--grpc-ip", "$(CILANTRO_SERVICE_SERVICE_HOST)", "--grpc-client-id", "cassandra-server", "--poll-frequency", "5", "--app-name", "cassandra-server"]
-        env:
+        env:  # These envvars are set just for debugging - in production they are populated by kubernetes.
           - name: CILANTRO_SERVICE_SERVICE_PORT
             value: "10000"
           - name: CILANTRO_SERVICE_SERVICE_HOST
