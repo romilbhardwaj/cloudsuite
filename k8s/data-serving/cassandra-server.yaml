@@ -65,6 +65,16 @@ spec:
             add:
               - IPC_LOCK
           privileged: true
+        readinessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - -c
+              - /scripts/ready-probe.sh
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 5 # 5 retries
+          periodSeconds: 10
         env:
           - name: MAX_HEAP_SIZE
             value: 512M

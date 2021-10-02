@@ -36,7 +36,7 @@ $ docker run --name cassandra-server-seed --privileged --net cass-net cloudsuite
 
 OR
 
-docker run --rm --name cassandra-server-seed --privileged --net cass-net public.ecr.aws/cilantro/data-serving:server
+docker run --name cassandra-server-seed --privileged --net cass-net public.ecr.aws/cilantro/data-serving:server
 ```
 
 You can optionally specify the listen address with `-e CASSANDRA_LISTEN_ADDRESS=<hostname or IP>`
@@ -64,7 +64,11 @@ After successfully creating the aforementioned schema, you are ready to benchmar
 Start the client container specifying server name(s), or IP address(es), separated with commas, as the last command argument:
 
 ```bash
-$ docker run --name cassandra-client --net cass-net cloudsuite/data-serving:client "cassandra-server-seed,cassandra-server1"
+docker run --name cassandra-client --net cass-net -e OPERATIONCOUNT=1000 -e RECORDCOUNT=5000 -e THREADCOUNT=16 cloudsuite/data-serving:client "cassandra-server-seed,cassandra-server1" /tmp
+
+OR
+
+docker run --name cassandra-client --net cass-net -e OPERATIONCOUNT=1000 -e RECORDCOUNT=5000 -e THREADCOUNT=16 public.ecr.aws/cilantro/data-serving:client "cassandra-server-seed,cassandra-server1" /tmp
 ```
 
 More detailed instructions on generating the dataset can be found in Step 5 at [this](http://github.com/brianfrankcooper/YCSB/wiki/Running-a-Workload) link. Although Step 5 in the link describes the data loading procedure, other steps (e.g., 1, 2, 3, 4) are very useful to understand the YCSB settings.
@@ -95,3 +99,14 @@ $ docker run -e RECORDCOUNT=<#> -e OPERATIONCOUNT=<#> --name cassandra-client --
 [dhrepo]: https://hub.docker.com/r/cloudsuite/data-serving/ "DockerHub Page"
 [dhpulls]: https://img.shields.io/docker/pulls/cloudsuite/data-serving.svg "Go to DockerHub Page"
 [dhstars]: https://img.shields.io/docker/stars/cloudsuite/data-serving.svg "Go to DockerHub Page"
+
+Thoughts on N Servers,one each for easier scaling
+---------------------
+
+The problem with the above implementation is that it creates one database and scales it across nodes.
+This is not good because cassandra scales vertically really [slow](https://docs.datastax.com/en/cassandra-oss/2.1/cassandra/operations/ops_add_node_to_cluster_t.html) and requires waiting between adding nodes.
+Instead, we can have multiple DBs running, one per resource. This would scale faster.
+However, this would require:
+
+1. run ycsb load on server instantiation to ensure each server has the db.
+2. The kubernetes service should automatically detect new services
