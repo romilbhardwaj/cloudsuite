@@ -1,13 +1,16 @@
 #!/bin/bash
 
-if [[ $(nodetool status | grep $POD_IP) == *"UN"* ]]; then
-  if [[ $DEBUG ]]; then
-    echo "UN";
-  fi
+if [ "$BYPASS_PROBE" = true ]; then
+  echo Bypassing probe
   exit 0;
+fi
+
+SIGNAL_FILE=/DBREADY.SIGNAL
+
+if [[ -f "$SIGNAL_FILE" ]]; then
+    echo "$SIGNAL_FILE exists."
+    exit 0;
 else
-  if [[ $DEBUG ]]; then
-    echo "Not Up";
-  fi
-  exit 1;
+    echo "$SIGNAL_FILE does not exist yet. Please retry."
+    exit 1;
 fi

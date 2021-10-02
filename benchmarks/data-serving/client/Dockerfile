@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED 1
 
 RUN set -ex \
     && apt-get update \
-    && apt-get install -y wget \
+    && apt-get install -y wget nano \
     && wget -q --show-progress --progress=bar:force -O /tmp/cassandra-tools_${CASSANDRA_VERSION}_all.deb http://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/debian/cassandra-tools_${CASSANDRA_VERSION}_all.deb \
     && dpkg --force-depends -i /tmp/cassandra-tools_${CASSANDRA_VERSION}_all.deb \
     && rm -rf /tmp/cassandra-tools_${CASSANDRA_VERSION}_all.deb

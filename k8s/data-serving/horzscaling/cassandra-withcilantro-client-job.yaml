@@ -1,0 +1,83 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ycsbclient
+  labels:
+    app: ycsbclient
+spec:
+  template:
+    metadata:
+      labels:
+        app: ycsbclient
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: log-share
+          emptyDir: {}
+      containers:
+      - name: cilantroycsbclient
+        image: public.ecr.aws/cilantro/cilantro:latest
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: log-share
+            mountPath: /cilantrologs
+        ports:
+          - containerPort: 10000
+        command: [ "python", "/cilantro/cilantro_clients/drivers/ycsb_to_grpc_driver.py" ]
+        args: [ "--log-folder-path", "/cilantrologs", "--grpc-port", "$(CILANTRO_SERVICE_SERVICE_PORT)", "--grpc-ip", "$(CILANTRO_SERVICE_SERVICE_HOST)", "--grpc-client-id", "cassandra-server", "--poll-frequency", "5", "--app-name", "cassandra-server"]
+        env:  # These envvars are set just for debugging - in production they are populated by kubernetes.
+          - name: CILANTRO_SERVICE_SERVICE_PORT
+            value: "10000"
+          - name: CILANTRO_SERVICE_SERVICE_HOST
+            value: "127.0.0.1"
+      - name: ycsbclient
+        image: public.ecr.aws/cilantro/data-serving:client
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: log-share
+            mountPath: /cilantrologs
+        ports:
+        - containerPort: 7000
+          name: intra-node
+        - containerPort: 7001
+          name: tls-intra-node
+        - containerPort: 7199
+          name: jmx
+        - containerPort: 9042
+          name: cql
+        - containerPort: 9160
+          name: thrift
+        resources:
+          limits:
+            cpu: "500m"
+            memory: 0.7Gi
+          requests:
+            cpu: "500m"
+            memory: 0.7Gi
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+          privileged: true
+        # args: ["cassandra-server-svc.default.svc.cluster.local", "/cilantrologs"] # This is the k8s service providing load balancing
+        # Uncomment these lines for debugging
+        command: [ "/bin/sh" ]
+        args: [ "-c", "while true; do echo hello; sleep 20;done" ]
+        env:
+          - name: MAX_HEAP_SIZE
+            value: 512M
+          - name: HEAP_NEWSIZE
+            value: 100M
+          - name: THREADCOUNT
+            value: "16"
+          - name: OPERATIONCOUNT
+            value: "5000"
+          - name: RECORDCOUNT
+            value: "10000"
+          - name: NOINITDB
+            value: "1"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP

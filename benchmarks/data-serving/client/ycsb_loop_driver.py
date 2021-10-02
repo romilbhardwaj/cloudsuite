@@ -3,6 +3,7 @@ import argparse
 import os
 import subprocess
 import time
+# from k8s_utils import K8sUtils
 
 
 class LoopDriver(object):
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs a command in a loop.')
     parser.add_argument('--cmd', type=str, help='command to run in a loop.')
     parser.add_argument('--out-dir', type=str, help='Output dir to store logs in.')
+    # parser.add_argument('--use-k8s', type=str, help='Output dir to store logs in.')
 
     args = parser.parse_args()
     cmd = args.cmd
