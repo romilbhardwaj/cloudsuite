@@ -1,9 +1,5 @@
 FROM cloudsuite/cassandra:3.11.6
 
-COPY files /scripts
-
-RUN chmod +x /scripts/docker-entrypoint.sh
-
 # ====================== Install JAVA8 ======================
 # Install "software-properties-common" (for the "add-apt-repository")
 RUN apt-get update && apt-get install -y \
@@ -24,6 +20,10 @@ RUN apt-get update && \
 ENV JAVA_HOME /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64/
 RUN export JAVA_HOME
 # ====================== JAVA8 Install Done ======================
+
+COPY files /scripts
+
+RUN chmod +x /scripts/docker-entrypoint.sh
 
 # For quicker bootstrapping
 RUN echo "JVM_OPTS=\"\$JVM_OPTS -Dcassandra.consistent.rangemovement=false\"" >> /etc/cassandra/cassandra-env.sh

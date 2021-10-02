@@ -1,5 +1,10 @@
 #!/bin/bash
 
+BYPASS_PROBE=true
+if [ "$BYPASS_PROBE" = true ]; then
+  exit 0;
+fi
+
 if [[ $(JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64/ nodetool status | grep $POD_IP) == *"UN"* ]]; then
   if [[ $DEBUG ]]; then
     echo "UN";

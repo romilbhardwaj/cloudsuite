@@ -42,6 +42,7 @@ spec:
         can_serve: "true"
         is_workload: "true"
     spec:
+      terminationGracePeriodSeconds: 15
       containers:
       - name: cassandra-server
         image: public.ecr.aws/cilantro/data-serving:server
@@ -65,6 +66,13 @@ spec:
             add:
               - IPC_LOCK
           privileged: true
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64/ nodetool decomission
         readinessProbe:
           exec:
             command:

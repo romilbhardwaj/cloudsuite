@@ -14,6 +14,11 @@ else
     echo Running regular Cassandra server.
 fi
 
+#if [[ ! -z "${POD_IP}" ]]; then
+#  echo "Running in k8s, setting -Dcassandra.replace_address=${POD_IP}"
+#  echo "JVM_OPTS=\"\$JVM_OPTS -Dcassandra.replace_address=${POD_IP}\"" >> /etc/cassandra/cassandra-env.sh
+#fi
+
 HOSTNAME=$(hostname -f)
 
 # first arg is `-f` or `--some-option`
