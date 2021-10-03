@@ -39,7 +39,7 @@ OR
 docker run --name cassandra-server-seed --privileged --net cass-net public.ecr.aws/cilantro/data-serving:server
 
 OR if you want to run a seed server which self initializes, use this. Remember to set recordcount equal to your client's.
-docker run --name cassandra-server-seed --privileged --net cass-net -e RECORDCOUNT=1000 public.ecr.aws/cilantro/data-serving:server-cilantro
+docker run --name cassandra-server-seed --privileged --net cass-net -e RECORDCOUNT=1000 public.ecr.aws/cilantro/data-serving:server-horz
 ```
 
 You can optionally specify the listen address with `-e CASSANDRA_LISTEN_ADDRESS=<hostname or IP>`
@@ -57,7 +57,7 @@ docker run --rm --name cassandra-server1 --privileged --net cass-net -e CASSANDR
 docker run --name cassandra-server2 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 docker run --name cassandra-server3 --privileged --net cass-net -e CASSANDRA_SEEDS=cassandra-server-seed cloudsuite/data-serving:server
 
-OR if you're using public.ecr.aws/cilantro/data-serving:server-cilantro, simply create more of them as indepdent DBs
+OR if you're using public.ecr.aws/cilantro/data-serving:server-horz, simply create more of them as indepdent DBs
 ```
 
 You can find more details at the websites: http://wiki.apache.org/cassandra/GettingStarted and https://hub.docker.com/_/cassandra/.
@@ -75,7 +75,7 @@ OR
 
 docker run --name cassandra-client --net cass-net -e OPERATIONCOUNT=1000 -e RECORDCOUNT=5000 -e THREADCOUNT=16 public.ecr.aws/cilantro/data-serving:client "cassandra-server-seed,cassandra-server1" /tmp
 
-If you do not want to initialize the database (e.g. you're using the public.ecr.aws/cilantro/data-serving:server-cilantro image), set NOINITDB=1
+If you do not want to initialize the database (e.g. you're using the public.ecr.aws/cilantro/data-serving:server-horz image), set NOINITDB=1
 docker run --name cassandra-client --rm --net cass-net -e NOINITDB=1 -e OPERATIONCOUNT=1000 -e RECORDCOUNT=1000 -e THREADCOUNT=16 public.ecr.aws/cilantro/data-serving:client "cassandra-server-seed,cassandra-server-seed2" /tmp
 ```
 

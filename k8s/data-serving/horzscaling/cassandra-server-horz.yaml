@@ -27,22 +27,25 @@ metadata:
   labels:
     app: cassandra-server
     can_serve: "true"
+    is_workload: "true"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: cassandra-server
       can_serve: "true"
+      is_workload: "true"
   template:
     metadata:
       labels:
         app: cassandra-server
         can_serve: "true"
+        is_workload: "true"
     spec:
       terminationGracePeriodSeconds: 15
       containers:
       - name: cassandra-server
-        image: public.ecr.aws/cilantro/data-serving:server-cilantro
+        image: public.ecr.aws/cilantro/data-serving:server-horz
         imagePullPolicy: Always
 #        # Uncomment these lines for debugging
 #        command: [ "/bin/sh" ]
@@ -79,7 +82,7 @@ spec:
           - name: HEAP_NEWSIZE
             value: 100M
           - name: RECORDCOUNT
-            value: "10000"
+            value: "100000"
           - name: POD_IP
             valueFrom:
               fieldRef:
