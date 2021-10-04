@@ -6,7 +6,7 @@ import time
 
 from k8s_utils import K8sUtils
 
-BASE_CMD = "/ycsb/bin/ycsb run cassandra-cql -s -p readproportion=1 -p updateproportion=0 -P /ycsb/workloads/workloada -p hdrhistogram.percentiles=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99"
+BASE_CMD = "/ycsb/bin/ycsb run cassandra-cql -s -p writeallfields=true -p readproportion=0 -p updateproportion=1 -p insertproportion=0 -p scanproportion=0 -P /ycsb/workloads/workloada -p hdrhistogram.percentiles=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99"
 CONN_SCALING_FACTOR = 1
 
 class YCSBLoopDriver(object):
@@ -21,6 +21,7 @@ class YCSBLoopDriver(object):
                  recordcount,
                  operationcount,
                  threadcount,
+                 target,
                  server_ips = None,
                  ):
         """
@@ -35,12 +36,12 @@ class YCSBLoopDriver(object):
         self.recordcount = recordcount
         self.operationcount = operationcount
         self.threadcount = threadcount
+        self.target = target
         self.server_ips = server_ips
 
         if self.use_k8s:
             from k8s_utils import K8sUtils
             self.k8s = K8sUtils()
-
 
     def get_hosts_arg(self):
         if self.use_k8s:
@@ -69,12 +70,17 @@ class YCSBLoopDriver(object):
         recordcount_arg = "-p recordcount={}".format(self.recordcount)
         return recordcount_arg
 
+    def get_target_arg(self):
+        target_arg = "-p target={}".format(self.target)
+        return target_arg
+
     def get_all_args(self):
         args = ""
         args += " " + self.get_hosts_arg()
         args += " " + self.get_recordcount_arg()
         args += " " + self.get_threadcount_arg()
         args += " " + self.get_operationcount_arg()
+        args += " " + self.get_target_arg()
         return args
 
     def run_loop(self):
@@ -123,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--recordcount', type=int, help='RECORDCOUNT arg to YCSB')
     parser.add_argument('--operationcount', type=int, help='RECORDCOUNT arg to YCSB')
     parser.add_argument('--threadcount', type=int, help='THREADCOUNT arg to YCSB')
+    parser.add_argument('--target', type=int, help='target throughput')
 
     args = parser.parse_args()
     out_dir = args.out_dir
@@ -131,6 +138,7 @@ if __name__ == '__main__':
     recordcount = args.recordcount
     operationcount = args.operationcount
     threadcount = args.threadcount
+    target = args.target
 
     print("Got args: {}".format(args))
 
@@ -140,6 +148,7 @@ if __name__ == '__main__':
                         recordcount=recordcount,
                         operationcount=operationcount,
                         threadcount=threadcount,
+                        target=target,
                         server_ips=server_ips)
     ld.run_loop()
 
